@@ -1,5 +1,8 @@
+// Алгоритм для модальных окон
 const modals = () => {
+    // Ф-я отвечает за привязку модального окна к определенному триггеру
     function bindModal(triggerSelector, modalSelector, closeSelector, closeClickOverlay = true) {
+        // Чтобы повесить один селектор на разные эл-ты через передачу псевдомассива
         const trigger = document.querySelectorAll(triggerSelector),
             modal = document.querySelector(modalSelector),
             close = document.querySelector(closeSelector),
@@ -7,7 +10,10 @@ const modals = () => {
             scroll = calcScroll();
 
         trigger.forEach(item => {
+            // На каждый из переданных эл-тов действует ф-ия
             item.addEventListener('click', (e) => {
+                // Т.к. триггером иногда является ссылка, отменить стандартное поведение браузера,
+                // заодно tаrget проверит эл-т на существование
                 if (e.target) {
                     e.preventDefault();
                 }
@@ -16,26 +22,30 @@ const modals = () => {
                     item.style.display = 'none';
                 });
 
+                // Указан блочный эл-т, передаваемый в ф-ию
                 modal.style.display = "block";
+                // Чтобы при открытом модальном окне заморозить страницу
                 document.body.style.overflow = "hidden";
                 document.body.style.marginRight = `${scroll}px`;
                 //document.body.classList.add('modal-open');
             });
         });
-
+        // Навесим обработчик события при закрытии
         close.addEventListener('click', () => {
             windows.forEach(item => {
                 item.style.display = 'none';
             });
-
+            // Операция закрытия модального окна
             modal.style.display = "none";
             document.body.style.overflow = "";
             document.body.style.marginRight = `0px`;
-            //document.body.classList.remove('modal-open');
+            //Класс из библиотеки document.body.classList.remove('modal-open');
 
         });
 
+        // Навесим еще один обработчик с анонимной ф-ей
         modal.addEventListener('click', (e) => {
+            // При клике на область за модальным окном, повторим событие его закрытия 
             if (e.target === modal && closeClickOverlay) {
                 windows.forEach(item => {
                     item.style.display = 'none';
@@ -50,6 +60,7 @@ const modals = () => {
         })
     }
 
+    // Если пользователь на странице более 60 сек, отрытие мод. окна
     function showModalByTime(selector, time) {
         setTimeout(function () {
             document.querySelector(selector).style.display = 'block';
@@ -71,7 +82,7 @@ const modals = () => {
 
         return scrollWidth
     }
-
+    // Запуск функций с необходимыми селекторами
     bindModal('.popup_engineer_btn', '.popup_engineer', '.popup_engineer .popup_close');
     bindModal('.phone_link', '.popup', '.popup_close');
     bindModal('.popup_calc_btn', '.popup_calc', '.popup_calc_close');

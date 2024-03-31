@@ -1,4 +1,6 @@
+// Импорт jQuery из node_modules
 import $ from 'jquery';
+// Импорт slick-carousel из node_modules
 import 'slick-carousel';
 
 $(document).ready(function () {
