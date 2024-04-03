@@ -25,7 +25,7 @@ const tabs = (headerSelector, tabSelector, contentSelector, activeClass, display
     hideTabContent();
     showTabContent();
 
-    // Отследить какой таб кликнул пользователь
+    // Отследит, какой таб кликнул пользователь
     header.addEventListener('click', (e) => {
         const target = e.target;
         // Проверка на правильность клика на класс таба

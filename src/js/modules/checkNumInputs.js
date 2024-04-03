@@ -1,3 +1,4 @@
+// Валидация ввода
 const checkNumInputs = (selector) => {
     const numInputs = document.querySelectorAll(selector);
 

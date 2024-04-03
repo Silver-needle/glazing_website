@@ -6,6 +6,7 @@ const modals = () => {
         const trigger = document.querySelectorAll(triggerSelector),
             modal = document.querySelector(modalSelector),
             close = document.querySelector(closeSelector),
+            // Переменная для получения всех модальных окон со страницы, чтобы закрывать все, кроме активных
             windows = document.querySelectorAll('[data-modal]'),
             scroll = calcScroll();
 
@@ -18,6 +19,7 @@ const modals = () => {
                     e.preventDefault();
                 }
 
+                // Перебираем массив, с переданной коллбэк-функцией
                 windows.forEach(item => {
                     item.style.display = 'none';
                 });
@@ -26,11 +28,12 @@ const modals = () => {
                 modal.style.display = "block";
                 // Чтобы при открытом модальном окне заморозить страницу
                 document.body.style.overflow = "hidden";
+                // Добавит margin-right нужной ширины для стабильного положения модальных окон
                 document.body.style.marginRight = `${scroll}px`;
                 //document.body.classList.add('modal-open');
             });
         });
-        // Навесим обработчик события при закрытии
+        // Навесим обработчик события при закрытии и ф-ию закрытия всех мод. окон при клике на крестик.
         close.addEventListener('click', () => {
             windows.forEach(item => {
                 item.style.display = 'none';
@@ -38,6 +41,7 @@ const modals = () => {
             // Операция закрытия модального окна
             modal.style.display = "none";
             document.body.style.overflow = "";
+            // Уберет отступ при закрытии модального окна
             document.body.style.marginRight = `0px`;
             //Класс из библиотеки document.body.classList.remove('modal-open');
 
@@ -46,6 +50,9 @@ const modals = () => {
         // Навесим еще один обработчик с анонимной ф-ей
         modal.addEventListener('click', (e) => {
             // При клике на область за модальным окном, повторим событие его закрытия 
+            // и добавим ф-ию закрытия всех мод. окон при клике на подложку.
+            // Используем аргумент closeClickOverlay = true/false для формирования цепочки
+            // мод. окон при расчете стоимости
             if (e.target === modal && closeClickOverlay) {
                 windows.forEach(item => {
                     item.style.display = 'none';
@@ -53,6 +60,7 @@ const modals = () => {
 
                 modal.style.display = "none";
                 document.body.style.overflow = "";
+                // Уберет отступ при закрытии модального окна
                 document.body.style.marginRight = `0px`;
                 //document.body.classList.remove('modal-open');
             }
@@ -68,6 +76,9 @@ const modals = () => {
         }, time);
     }
 
+    // Ф-я обеспечит стабильное положение модальных окон при открытии  путем добавления margin
+    // поведение будет корректным вне зависимости от браузера, т.к. реализован 
+    // подсчет расстояния в пикселях
     function calcScroll() {
         let div = document.createElement('div');
 
@@ -77,9 +88,12 @@ const modals = () => {
         div.style.visibility = 'hidden';
 
         document.body.appendChild(div);
+        // Разность полной ширины и контента без прокрутки, чтобы определить ширину прокрутки
+        // в конкретном браузере
         let scrollWidth = div.offsetWidth - div.clientWidth;
         div.remove();
 
+        // Возвращает ширину прокрутки
         return scrollWidth
     }
     // Запуск функций с необходимыми селекторами

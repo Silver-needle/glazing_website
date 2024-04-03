@@ -10,16 +10,17 @@ import images from "./modules/images";
 // Глобальный обработчик событий обеспечивает выполнение скриптов, когда готова стр-ра на странице
 window.addEventListener('DOMContentLoaded', () => {
     "use strict";
-
+    // Постоянно модифицируется при помощи changeModalState для актуальности данных из формы
     let modalState = {};
-    let deadline = '2024-04-10';
+    // Задает дедлайн таймера акции
+    let deadline = '2024-05-18';
 
     changeModalState(modalState);
     modals();
     tabs('.glazing_slider', '.glazing_block', '.glazing_content', 'active');
     tabs('.decoration_slider', '.no_click', '.decoration_content > div > div', 'after_click');
     tabs('.balcon_icons', '.balcon_icons_img', '.big_img > img', 'do_image_more', 'inline-block');
-    forms();
+    forms(modalState);
     timer('.container1', deadline);
     images();
 });

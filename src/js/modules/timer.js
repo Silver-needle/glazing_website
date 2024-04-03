@@ -1,3 +1,4 @@
+// Ф-я запускает таймер обратного отсчета на странице
 const timer = (id, deadline) => {
     const addZero = (num) => {
         if (num <= 9) {
@@ -6,14 +7,16 @@ const timer = (id, deadline) => {
             return num;
         }
     };
-
+    // Ф-я получает дату дедлайна, вычисляет кол-во секунд, минут и дней до конца акции
     const getTimeRemaining = (endtime) => {
+        // Определит разницу м-ду дедлайном и нынешним временем
         const t = Date.parse(endtime) - Date.parse(new Date()),
             seconds = Math.floor((t / 1000) % 60),
             minutes = Math.floor((t / 1000 / 60) % 60),
             hours = Math.floor((t / (1000 * 60 * 60)) % 24),
             days = Math.floor((t / (1000 * 60 * 60 * 24)));
 
+        // Возвращает объект
         return {
             'total': t,
             'days': days,
@@ -23,6 +26,7 @@ const timer = (id, deadline) => {
         };
     };
 
+    // Ф-я помещает определенные значения в эл-ты страницы по id
     const setClock = (selector, endtime) => {
         const timer = document.querySelector(selector),
             days = timer.querySelector("#days"),
@@ -33,6 +37,7 @@ const timer = (id, deadline) => {
 
         updateClock();
 
+        // Ф-я определяет кол-во времени до дедлайна и каждую секунду возвращает актуальное значение
         function updateClock() {
             const t = getTimeRemaining(endtime);
 
@@ -47,6 +52,7 @@ const timer = (id, deadline) => {
                 minutes.textContent = "00";
                 seconds.textContent = "00";
 
+                // Остановит интервал
                 clearInterval(timeInterval);
             }
         }

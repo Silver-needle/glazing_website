@@ -20,18 +20,29 @@ const changeModalState = state => {
     windowHeight = document.querySelectorAll('#height'),
     windowType = document.querySelectorAll('#view_type'),
     windowProfile = document.querySelectorAll('.checkbox');
+
+  // Валидация данных
   (0,_checkNumInputs__WEBPACK_IMPORTED_MODULE_0__["default"])('#width');
   (0,_checkNumInputs__WEBPACK_IMPORTED_MODULE_0__["default"])('#height');
+
+  // Ф-я будет проверять кол-во входящих элементов (псевдомассивов ), если =1 навесит на него обработчик события, иначе
+  // запустит код
   function bindActionToElems(event, elem, prop) {
     elem.forEach((item, i) => {
       item.addEventListener(event, () => {
+        // Строка будет оределять входящую ноду
         switch (item.nodeName) {
+          // Если клик на изображение
           case 'SPAN':
+            // В prop запишется его номер, соответствующий типу балкона
             state[prop] = i;
             break;
+          // 
           case 'INPUT':
+            // Условие выполнится при клике на один из двух чекбоксов
             if (item.getAttribute('type') === 'checkbox') {
               i === 0 ? state[prop] = "Холодное" : state[prop] = "Теплое";
+              // Убирает галочки со всех чекбоксов, кроме того, на который был клик
               elem.forEach((box, j) => {
                 box.checked = false;
                 if (i == j) {
@@ -39,9 +50,11 @@ const changeModalState = state => {
                 }
               });
             } else {
+              // Берет значение из инпута
               state[prop] = item.value;
             }
             break;
+          // Берет значение из селекта
           case 'SELECT':
             state[prop] = item.value;
             break;
@@ -71,6 +84,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+// Валидация ввода
 const checkNumInputs = selector => {
   const numInputs = document.querySelectorAll(selector);
   numInputs.forEach(item => {
@@ -96,39 +110,76 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _checkNumInputs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./checkNumInputs */ "./src/js/modules/checkNumInputs.js");
 
-const forms = () => {
+
+// Формы собирают информацию внутри себя и отправляют на сервер
+const forms = state => {
   const form = document.querySelectorAll('form'),
+    // Очищать все инпуты после того, как инфа отправлена на сервер
     inputs = document.querySelectorAll('input');
+
+  // Проверка на тип данных
   (0,_checkNumInputs__WEBPACK_IMPORTED_MODULE_0__["default"])('input[name="user_phone"]');
+
+  // Объект с оповещениями для пользователя 
   const message = {
     loading: 'Загрузка...',
     success: 'Спасибо! Мы скоро свяжемся с вами.',
     failure: 'Возникла непредвиденная ошибка.'
   };
+
+  //  Ф-ия скрывает часть реализации. Получив промис, обрабатываем до нужного 
+  // формата. Получает аргументы: адрес для отправки запроса и данные, уходящие на сервер.
+  // Т.к. fetch асинхронный, через async и await, происходит ожидание окончание работы fetch 
+  // и тогда получим результат res. 
   const postData = async (url, data) => {
     document.querySelector('.status').textContent = message.loading;
     let res = await fetch(url, {
       method: "POST",
       body: data
     });
+
+    // res будет возвращен с сервера в текстовом формате и асинхронным, поэтому тоже await
     return await res.text();
   };
+
+  // Ф-я очистит инпуты, заменив знач-я пустой строкой
   const clearInputs = () => {
     input.forEach(item => {
       item.value = '';
     });
   };
+
+  // Перебирает все формы, навешивает обработчик события submit
   form.forEach(item => {
     item.addEventListener('submit', e => {
+      // Отмена стандартного поведения браузера, чтобы данные из формы уходили без перезагрузки страницы
       e.preventDefault();
+
+      // Создание блока для сообщения в объекте message с добавлением класса status
       let statusMessage = document.createElement('div');
       statusMessage.classList.add('status');
+      // Помещение блока сообщения в конец формы
       item.appendChild(statusMessage);
+
+      // Создание объекта, который объединит в себе все данные из формы
       const formData = new FormData(item);
+      // Если у формы есть атрибут, добавит ключ-значения
+      if (item.getAttribute('data-calc') === "end") {
+        for (let key in state) {
+          formData.append(key, state[key]);
+        }
+      }
+
+      // Ф-ия принимает данные, отправляет на сервер и выводит сообщение для пользователя соответственно им
       postData('assets/server.php', formData).then(res => {
         console.log(res);
         statusMessage.textContent = message.success;
-      }).catch(() => statusMessage.textContent = message.failure).finally(() => {
+      })
+
+      // Обработка ошибки
+      .catch(() => statusMessage.textContent = message.failure)
+      // Ф-я очистит инпуты и уберет сообщение статуса через 5 сек.
+      .finally(() => {
         clearInputs();
         setTimeout(() => {
           statusMessage.remove();
@@ -152,24 +203,44 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+// Ф-я открывает миниатюры раздела Наши работы с фоновой подложкой и увеличением
 const images = () => {
+  // Создание модального окна
   const imgPopup = document.createElement('div'),
+    // Общий блок для всех изображений
     workSection = document.querySelector('.works'),
+    // Крупное изображение
     bigImage = document.createElement('img');
+
+  // Добавит класс popup
   imgPopup.classList.add('popup');
+  // Секция для отображения изображения на странице
   workSection.appendChild(imgPopup);
+
+  // Центрирование изображения при помощи инлайн стилей
   imgPopup.style.justifyContent = 'center';
   imgPopup.style.alignItems = 'center';
   imgPopup.style.display = 'none';
+
+  // Помещает крупное изображение в окно
   imgPopup.appendChild(bigImage);
+
+  // Ф-я назначает обработчик события
   workSection.addEventListener('click', e => {
     e.preventDefault();
     let target = e.target;
+
+    // Проверка, поддерживается ли событие click и есть ли в эл-те класс preview
     if (target && target.classList.contains('preview')) {
+      // Покажет модальное окно
       imgPopup.style.display = 'flex';
+      // Покажет картинку, на которую был клик 
       const path = target.parentNode.getAttribute('href');
+      // Берет изображение из модального окна, устанавливает src в позицию path 
       bigImage.setAttribute('src', path);
     }
+
+    // При клике на подложку, модальное окно будет закрываться
     if (target && target.matches('div.popup')) {
       imgPopup.style.display = 'none';
     }
@@ -198,6 +269,7 @@ const modals = () => {
     const trigger = document.querySelectorAll(triggerSelector),
       modal = document.querySelector(modalSelector),
       close = document.querySelector(closeSelector),
+      // Переменная для получения всех модальных окон со страницы, чтобы закрывать все, кроме активных
       windows = document.querySelectorAll('[data-modal]'),
       scroll = calcScroll();
     trigger.forEach(item => {
@@ -208,6 +280,8 @@ const modals = () => {
         if (e.target) {
           e.preventDefault();
         }
+
+        // Перебираем массив, с переданной коллбэк-функцией
         windows.forEach(item => {
           item.style.display = 'none';
         });
@@ -216,11 +290,12 @@ const modals = () => {
         modal.style.display = "block";
         // Чтобы при открытом модальном окне заморозить страницу
         document.body.style.overflow = "hidden";
+        // Добавит margin-right нужной ширины для стабильного положения модальных окон
         document.body.style.marginRight = `${scroll}px`;
         //document.body.classList.add('modal-open');
       });
     });
-    // Навесим обработчик события при закрытии
+    // Навесим обработчик события при закрытии и ф-ию закрытия всех мод. окон при клике на крестик.
     close.addEventListener('click', () => {
       windows.forEach(item => {
         item.style.display = 'none';
@@ -228,6 +303,7 @@ const modals = () => {
       // Операция закрытия модального окна
       modal.style.display = "none";
       document.body.style.overflow = "";
+      // Уберет отступ при закрытии модального окна
       document.body.style.marginRight = `0px`;
       //Класс из библиотеки document.body.classList.remove('modal-open');
     });
@@ -235,12 +311,16 @@ const modals = () => {
     // Навесим еще один обработчик с анонимной ф-ей
     modal.addEventListener('click', e => {
       // При клике на область за модальным окном, повторим событие его закрытия 
+      // и добавим ф-ию закрытия всех мод. окон при клике на подложку.
+      // Используем аргумент closeClickOverlay = true/false для формирования цепочки
+      // мод. окон при расчете стоимости
       if (e.target === modal && closeClickOverlay) {
         windows.forEach(item => {
           item.style.display = 'none';
         });
         modal.style.display = "none";
         document.body.style.overflow = "";
+        // Уберет отступ при закрытии модального окна
         document.body.style.marginRight = `0px`;
         //document.body.classList.remove('modal-open');
       }
@@ -254,6 +334,10 @@ const modals = () => {
       document.body.style.overflow = "hidden";
     }, time);
   }
+
+  // Ф-я обеспечит стабильное положение модальных окон при открытии  путем добавления margin
+  // поведение будет корректным вне зависимости от браузера, т.к. реализован 
+  // подсчет расстояния в пикселях
   function calcScroll() {
     let div = document.createElement('div');
     div.style.width = '50px';
@@ -261,8 +345,12 @@ const modals = () => {
     div.style.overflowY = 'scroll';
     div.style.visibility = 'hidden';
     document.body.appendChild(div);
+    // Разность полной ширины и контента без прокрутки, чтобы определить ширину прокрутки
+    // в конкретном браузере
     let scrollWidth = div.offsetWidth - div.clientWidth;
     div.remove();
+
+    // Возвращает ширину прокрутки
     return scrollWidth;
   }
   // Запуск функций с необходимыми селекторами
@@ -317,7 +405,7 @@ const tabs = (headerSelector, tabSelector, contentSelector, activeClass, display
   hideTabContent();
   showTabContent();
 
-  // Отследить какой таб кликнул пользователь
+  // Отследит, какой таб кликнул пользователь
   header.addEventListener('click', e => {
     const target = e.target;
     // Проверка на правильность клика на класс таба
@@ -349,6 +437,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+// Ф-я запускает таймер обратного отсчета на странице
 const timer = (id, deadline) => {
   const addZero = num => {
     if (num <= 9) {
@@ -357,12 +446,16 @@ const timer = (id, deadline) => {
       return num;
     }
   };
+  // Ф-я получает дату дедлайна, вычисляет кол-во секунд, минут и дней до конца акции
   const getTimeRemaining = endtime => {
+    // Определит разницу м-ду дедлайном и нынешним временем
     const t = Date.parse(endtime) - Date.parse(new Date()),
       seconds = Math.floor(t / 1000 % 60),
       minutes = Math.floor(t / 1000 / 60 % 60),
       hours = Math.floor(t / (1000 * 60 * 60) % 24),
       days = Math.floor(t / (1000 * 60 * 60 * 24));
+
+    // Возвращает объект
     return {
       'total': t,
       'days': days,
@@ -371,6 +464,8 @@ const timer = (id, deadline) => {
       'seconds': seconds
     };
   };
+
+  // Ф-я помещает определенные значения в эл-ты страницы по id
   const setClock = (selector, endtime) => {
     const timer = document.querySelector(selector),
       days = timer.querySelector("#days"),
@@ -379,6 +474,8 @@ const timer = (id, deadline) => {
       seconds = timer.querySelector("#seconds"),
       timeInterval = setInterval(updateClock, 1000);
     updateClock();
+
+    // Ф-я определяет кол-во времени до дедлайна и каждую секунду возвращает актуальное значение
     function updateClock() {
       const t = getTimeRemaining(endtime);
       days.textContent = addZero(t.days);
@@ -390,6 +487,8 @@ const timer = (id, deadline) => {
         hours.textContent = "00";
         minutes.textContent = "00";
         seconds.textContent = "00";
+
+        // Остановит интервал
         clearInterval(timeInterval);
       }
     }
@@ -14332,14 +14431,16 @@ __webpack_require__.r(__webpack_exports__);
 window.addEventListener('DOMContentLoaded', () => {
   "use strict";
 
+  // Постоянно модифицируется при помощи changeModalState для актуальности данных из формы
   let modalState = {};
-  let deadline = '2024-04-10';
+  // Задает дедлайн таймера акции
+  let deadline = '2024-05-18';
   (0,_modules_changeModalState__WEBPACK_IMPORTED_MODULE_4__["default"])(modalState);
   (0,_modules_modals__WEBPACK_IMPORTED_MODULE_1__["default"])();
   (0,_modules_tabs__WEBPACK_IMPORTED_MODULE_2__["default"])('.glazing_slider', '.glazing_block', '.glazing_content', 'active');
   (0,_modules_tabs__WEBPACK_IMPORTED_MODULE_2__["default"])('.decoration_slider', '.no_click', '.decoration_content > div > div', 'after_click');
   (0,_modules_tabs__WEBPACK_IMPORTED_MODULE_2__["default"])('.balcon_icons', '.balcon_icons_img', '.big_img > img', 'do_image_more', 'inline-block');
-  (0,_modules_forms__WEBPACK_IMPORTED_MODULE_3__["default"])();
+  (0,_modules_forms__WEBPACK_IMPORTED_MODULE_3__["default"])(modalState);
   (0,_modules_timer__WEBPACK_IMPORTED_MODULE_5__["default"])('.container1', deadline);
   (0,_modules_images__WEBPACK_IMPORTED_MODULE_6__["default"])();
 });
